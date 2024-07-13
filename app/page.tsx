@@ -1,113 +1,209 @@
-import Image from "next/image";
+"use client";
+
+import { useForm, SubmitHandler } from "react-hook-form";
+import { useState } from "react";
+
+interface FormData {
+  origin: string;
+  destination: string;
+  cabin: string;
+  startDate: string;
+}
+
+interface ApiResponse {
+  data: Array<{
+    min_business_miles: number | null;
+    min_business_tax: number | null;
+    min_economy_miles: number | null;
+    min_economy_tax: number | null;
+    min_first_miles: number | null;
+    min_first_tax: number | null;
+    partner_program: string;
+  }>;
+}
+
+const partnerImages: { [key: string]: string } = {
+  "Qatar Airways": "/qatar.png",
+  "American Airlines": "/American airlines.jpeg",
+  "Air Canada": "/aircanada.jpeg",
+  "United Airlines": "/united airlines.png",
+  "KLM": "/klm.png",
+  "Qantas": "/quantas.png",
+  "Etihad Airways": "/etihad.png",
+  "Alaska Airlines": "/alaska.png",
+  "LifeMiles": "/lifemiles.png",
+};
 
 export default function Home() {
+  const { register, handleSubmit } = useForm<FormData>();
+  const [result, setResult] = useState<ApiResponse | null>(null);
+  const [fail, setFail] = useState<string>("");
+  const [formStartDate, setFormStartDate] = useState<string>("");
+
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    const headers: HeadersInit = {
+      accept: "application/json, text/plain, */*",
+      "accept-language": "en-US,en;q=0.9,hi;q=0.8",
+      "cache-control": "no-cache",
+      "content-type": "application/json",
+      "user-agent":
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
+    };
+
+    const json_data = {
+      origin: data.origin,
+      destination: data.destination,
+      partnerPrograms: [
+        "Air Canada",
+        "United Airlines",
+        "KLM",
+        "Qantas",
+        "American Airlines",
+        "Etihad Airways",
+        "Alaska Airlines",
+        "Qatar Airways",
+        "LifeMiles",
+      ],
+      stops: 2,
+      departureTimeFrom: data.startDate,
+      departureTimeTo: "2024-10-07T00:00:00Z",
+      isOldData: false,
+      limit: 302,
+      offset: 0,
+      cabinSelection: [data.cabin],
+      date: new Date().toISOString(),
+    };
+
+    try {
+      const response = await fetch("https://cardgpt.in/apitest", {
+        method: "POST",
+        headers: headers,
+        body: JSON.stringify(json_data),
+      });
+      const result: ApiResponse = await response.json();
+      setFormStartDate(data.startDate);
+      setResult(result);
+    } catch (error) {
+      setFail("Try another route");
+    }
+  };
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full max-w-xs space-y-4"
+      >
+        <select
+          {...register("origin", { required: true })}
+          className="select select-bordered w-full"
+        >
+          <option value="">Select origin...</option>
+          <option value="JFK">JFK</option>
+          <option value="DEL">DEL</option>
+          <option value="SYD">SYD</option>
+          <option value="BOM">BOM</option>
+          <option value="BNE">BNE</option>
+          <option value="BLR">BLR</option>
+        </select>
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+        <select
+          {...register("destination", { required: true })}
+          className="select select-bordered w-full"
+        >
+          <option value="">Select destination...</option>
+          <option value="JFK">JFK</option>
+          <option value="DEL">DEL</option>
+          <option value="SYD">SYD</option>
+          <option value="LHR">LHR</option>
+          <option value="CDG">CDG</option>
+          <option value="DOH">DOH</option>
+          <option value="SIN">SIN</option>
+        </select>
+
+        <select
+          {...register("cabin", { required: true })}
+          className="select select-bordered w-full"
+        >
+          <option value="">Select cabin...</option>
+          <option value="Economy">Economy</option>
+          <option value="Business">Business</option>
+          <option value="First">First</option>
+        </select>
+
+        <input
+          type="date"
+          {...register("startDate", { required: true })}
+          className="input input-bordered w-full"
+          placeholder="Start Date"
         />
-      </div>
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+        <input
+          type="submit"
+          value="Search"
+          className="btn btn-primary w-full"
+        />
+      </form>
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
+      {result && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-8 place-items-center">
+          <h2 className="text-2xl font-bold col-span-full mb-4">
+            Available Flights
           </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+          {result.data.map((item, index) => (
+            <div key={index} className="card bg-base-100 w-96 shadow-xl">
+              <figure className="px-10 pt-10">
+                <img
+                  src={partnerImages[item.partner_program]}
+                  alt="Flight"
+                  className="rounded-xl"
+                />
+              </figure>
+              <div className="card-body items-center text-center">
+                <h3 className="card-title">{item.partner_program}</h3>
+                <p> {formStartDate}</p>
+                <div>
+                  <p className="text-2xl">
+                    {item.min_business_miles ?? "N/A"}{" "}
+                    {item.min_business_miles != null && (
+                      <span className="text-sm">
+                        ${item.min_business_tax ?? "N/A"}
+                      </span>
+                    )}
+                  </p>
+                  <p>Min Business Miles</p>
+                </div>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+                <div>
+                  <p className="text-2xl">
+                    {item.min_first_miles ?? "N/A"}{" "}
+                    {item.min_first_miles != null && (
+                      <span className="text-sm">
+                        ${item.min_first_tax ?? "N/A"}
+                      </span>
+                    )}
+                  </p>
+                  <p>Min First  Miles</p>
+                </div>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+                <div>
+                  <p className="text-2xl">
+                    {item.min_economy_miles ?? "N/A"}{" "}
+                    {item.min_economy_miles != null && (
+                      <span className="text-sm">
+                        ${item.min_economy_tax ?? "N/A"}
+                      </span>
+                    )}
+                  </p>
+                  <p>Min Economy  Miles</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {fail && <p> {fail}</p>}
     </main>
   );
 }
